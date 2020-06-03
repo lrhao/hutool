@@ -2,6 +2,7 @@ package cn.hutool.core.lang;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.exceptions.ValidateException;
+import cn.hutool.core.util.CreditCodeUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.ReUtil;
@@ -123,7 +124,7 @@ public class Validator {
 		if (isFalse(value)) {
 			throw new ValidateException(errorMsgTemplate, params);
 		}
-		return value;
+		return true;
 	}
 
 	/**
@@ -140,7 +141,7 @@ public class Validator {
 		if (isTrue(value)) {
 			throw new ValidateException(errorMsgTemplate, params);
 		}
-		return value;
+		return false;
 	}
 
 	/**
@@ -178,7 +179,7 @@ public class Validator {
 		if (isNotNull(value)) {
 			throw new ValidateException(errorMsgTemplate, params);
 		}
-		return value;
+		return null;
 	}
 
 	/**
@@ -327,17 +328,6 @@ public class Validator {
 	}
 
 	/**
-	 * 通过正则表达式验证
-	 *
-	 * @param regex 正则
-	 * @param value 值
-	 * @return 是否匹配正则
-	 */
-	public static boolean isMactchRegex(String regex, CharSequence value) {
-		return ReUtil.isMatch(regex, value);
-	}
-
-	/**
 	 * 通过正则表达式验证<br>
 	 * 不符合正则抛出{@link ValidateException} 异常
 	 *
@@ -349,7 +339,7 @@ public class Validator {
 	 * @throws ValidateException 验证异常
 	 */
 	public static <T extends CharSequence> T validateMatchRegex(String regex, T value, String errorMsg) throws ValidateException {
-		if (false == isMactchRegex(regex, value)) {
+		if (false == isMatchRegex(regex, value)) {
 			throw new ValidateException(errorMsg);
 		}
 		return value;
@@ -371,12 +361,36 @@ public class Validator {
 	/**
 	 * 通过正则表达式验证
 	 *
+	 * @param regex 正则
+	 * @param value 值
+	 * @return 是否匹配正则
+	 * @deprecated 拼写错误，请使用{@link #isMatchRegex(String, CharSequence)}
+	 */
+	@Deprecated
+	public static boolean isMactchRegex(String regex, CharSequence value) {
+		return ReUtil.isMatch(regex, value);
+	}
+
+	/**
+	 * 通过正则表达式验证
+	 *
 	 * @param pattern 正则模式
 	 * @param value   值
 	 * @return 是否匹配正则
 	 */
 	public static boolean isMatchRegex(Pattern pattern, CharSequence value) {
 		return ReUtil.isMatch(pattern, value);
+	}
+
+	/**
+	 * 通过正则表达式验证
+	 *
+	 * @param regex 正则
+	 * @param value 值
+	 * @return 是否匹配正则
+	 */
+	public static boolean isMatchRegex(String regex, CharSequence value) {
+		return ReUtil.isMatch(regex, value);
 	}
 
 	/**
@@ -421,7 +435,7 @@ public class Validator {
 		if (max <= 0) {
 			reg = "^\\w{" + min + ",}$";
 		}
-		return isMactchRegex(reg, value);
+		return isMatchRegex(reg, value);
 	}
 
 	/**
@@ -953,13 +967,13 @@ public class Validator {
 	}
 
 	/**
-	 * 验证是否为汉字
+	 * 验证是否都为汉字
 	 *
 	 * @param value 值
 	 * @return 是否为汉字
 	 */
 	public static boolean isChinese(CharSequence value) {
-		return isMactchRegex("^" + ReUtil.RE_CHINESES + "$", value);
+		return isMatchRegex(PatternPool.CHINESES, value);
 	}
 
 	/**
@@ -1102,5 +1116,23 @@ public class Validator {
 		if (false == isBetween(value, min, max)) {
 			throw new ValidateException(errorMsg);
 		}
+	}
+
+	/**
+	 * 是否是有效的统一社会信用代码
+	 * <pre>
+	 * 第一部分：登记管理部门代码1位 (数字或大写英文字母)
+	 * 第二部分：机构类别代码1位 (数字或大写英文字母)
+	 * 第三部分：登记管理机关行政区划码6位 (数字)
+	 * 第四部分：主体标识码（组织机构代码）9位 (数字或大写英文字母)
+	 * 第五部分：校验码1位 (数字或大写英文字母)
+	 * </pre>
+	 *
+	 * @param creditCode 统一社会信用代码
+	 * @return 校验结果
+	 * @since 5.2.4
+	 */
+	public static boolean isCreditCode(CharSequence creditCode) {
+		return CreditCodeUtil.isCreditCode(creditCode);
 	}
 }

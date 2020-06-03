@@ -130,7 +130,10 @@ public class BeanCopier<T> implements Copier<T>, Serializable {
 	 * @param bean Bean
 	 */
 	private void mapToBean(Map<?, ?> map, Object bean) {
-		valueProviderToBean(new MapValueProvider(map, this.copyOptions.ignoreCase), bean);
+		valueProviderToBean(
+				new MapValueProvider(map, this.copyOptions.ignoreCase, this.copyOptions.ignoreError),
+				bean
+		);
 	}
 
 	/**
@@ -264,7 +267,7 @@ public class BeanCopier<T> implements Copier<T>, Serializable {
 			if (null == value && copyOptions.ignoreNullValue) {
 				continue;// 当允许跳过空时，跳过
 			}
-			if (bean.equals(value)) {
+			if (bean == value) {
 				continue;// 值不能为bean本身，防止循环引用
 			}
 
@@ -283,7 +286,7 @@ public class BeanCopier<T> implements Copier<T>, Serializable {
 					ReflectUtil.setFieldValue(bean, field, value);
 				} else{
 					// 执行set方法注入值
-					setterMethod.invoke(bean, value);
+					ReflectUtil.invoke(bean, setterMethod, value);
 				}
 			} catch (Exception e) {
 				if (false ==copyOptions.ignoreError) {

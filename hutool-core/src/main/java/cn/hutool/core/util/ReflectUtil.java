@@ -1,7 +1,7 @@
 package cn.hutool.core.util;
 
 import cn.hutool.core.annotation.Alias;
-import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.exceptions.UtilException;
 import cn.hutool.core.lang.Assert;
@@ -13,6 +13,7 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -149,7 +150,7 @@ public class ReflectUtil {
 		final Field[] fields = getFields(beanClass);
 		if (ArrayUtil.isNotEmpty(fields)) {
 			for (Field field : fields) {
-				if ((name.equals(field.getName()))) {
+				if ((name.equals(getFieldName(field)))) {
 					return field;
 				}
 			}
@@ -304,7 +305,7 @@ public class ReflectUtil {
 		Assert.notNull(obj);
 		Assert.notBlank(fieldName);
 
-		final Field field = getField((obj instanceof Class) ? (Class<?>)obj : obj.getClass(), fieldName);
+		final Field field = getField((obj instanceof Class) ? (Class<?>) obj : obj.getClass(), fieldName);
 		Assert.notNull(field, "Field [{}] is not exist in [{}]", fieldName, obj.getClass().getName());
 		setFieldValue(obj, field, value);
 	}
@@ -320,8 +321,8 @@ public class ReflectUtil {
 	public static void setFieldValue(Object obj, Field field, Object value) throws UtilException {
 		Assert.notNull(field, "Field in [{}] not exist !", obj);
 
+		final Class<?> fieldType = field.getType();
 		if (null != value) {
-			Class<?> fieldType = field.getType();
 			if (false == fieldType.isAssignableFrom(value.getClass())) {
 				//对于类型不同的字段，尝试转换，转换失败则使用原对象类型
 				final Object targetValue = Convert.convert(fieldType, value);
@@ -329,6 +330,9 @@ public class ReflectUtil {
 					value = targetValue;
 				}
 			}
+		} else {
+			// 获取null对应默认值，防止原始类型造成空指针问题
+			value = ClassUtil.getDefaultValue(fieldType);
 		}
 
 		setAccessible(field);
@@ -391,7 +395,7 @@ public class ReflectUtil {
 				}
 			}
 		} else {
-			methodList = CollectionUtil.newArrayList(methods);
+			methodList = CollUtil.newArrayList(methods);
 		}
 		return methodList;
 	}
@@ -404,7 +408,7 @@ public class ReflectUtil {
 	 * @return 过滤后的方法列表
 	 */
 	public static List<Method> getPublicMethods(Class<?> clazz, Method... excludeMethods) {
-		final HashSet<Method> excludeMethodSet = CollectionUtil.newHashSet(excludeMethods);
+		final HashSet<Method> excludeMethodSet = CollUtil.newHashSet(excludeMethods);
 		return getPublicMethods(clazz, method -> false == excludeMethodSet.contains(method));
 	}
 
@@ -416,7 +420,7 @@ public class ReflectUtil {
 	 * @return 过滤后的方法列表
 	 */
 	public static List<Method> getPublicMethods(Class<?> clazz, String... excludeMethodNames) {
-		final HashSet<String> excludeMethodNameSet = CollectionUtil.newHashSet(excludeMethodNames);
+		final HashSet<String> excludeMethodNameSet = CollUtil.newHashSet(excludeMethodNames);
 		return getPublicMethods(clazz, method -> false == excludeMethodNameSet.contains(method.getName()));
 	}
 
@@ -766,13 +770,32 @@ public class ReflectUtil {
 
 	/**
 	 * 尝试遍历并调用此类的所有构造方法，直到构造成功并返回
+	 * <p>
+	 * 对于某些特殊的接口，按照其默认实现实例化，例如：
+	 * <pre>
+	 *     Map       -》 HashMap
+	 *     Collction -》 ArrayList
+	 *     List      -》 ArrayList
+	 *     Set       -》 HashSet
+	 * </pre>
 	 *
 	 * @param <T>       对象类型
 	 * @param beanClass 被构造的类
 	 * @return 构造后的对象
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T newInstanceIfPossible(Class<T> beanClass) {
 		Assert.notNull(beanClass);
+
+		// 某些特殊接口的实例化按照默认实现进行
+		if (beanClass.isAssignableFrom(AbstractMap.class)) {
+			beanClass = (Class<T>) HashMap.class;
+		} else if (beanClass.isAssignableFrom(List.class)) {
+			beanClass = (Class<T>) ArrayList.class;
+		} else if (beanClass.isAssignableFrom(Set.class)) {
+			beanClass = (Class<T>) HashSet.class;
+		}
+
 		try {
 			return newInstance(beanClass);
 		} catch (Exception e) {
@@ -848,6 +871,15 @@ public class ReflectUtil {
 	/**
 	 * 执行方法
 	 *
+	 * <p>
+	 * 对于用户传入参数会做必要检查，包括：
+	 *
+	 * <pre>
+	 *     1、忽略多余的参数
+	 *     2、参数不够补齐默认值
+	 *     3、传入参数为null，但是目标参数类型为原始类型，做转换
+	 * </pre>
+	 *
 	 * @param <T>    返回对象类型
 	 * @param obj    对象，如果执行静态方法，此值为<code>null</code>
 	 * @param method 方法（对象方法或static方法都可）
@@ -859,8 +891,32 @@ public class ReflectUtil {
 	public static <T> T invoke(Object obj, Method method, Object... args) throws UtilException {
 		setAccessible(method);
 
+		// 检查用户传入参数：
+		// 1、忽略多余的参数
+		// 2、参数不够补齐默认值
+		// 3、传入参数为null，但是目标参数类型为原始类型，做转换
+		// 4、传入参数类型不对应，尝试转换类型
+		final Class<?>[] parameterTypes = method.getParameterTypes();
+		final Object[] actualArgs = new Object[parameterTypes.length];
+		if (null != args) {
+			for (int i = 0; i < actualArgs.length; i++) {
+				if (i >= args.length || null == args[i]) {
+					// 越界或者空值
+					actualArgs[i] = ClassUtil.getDefaultValue(parameterTypes[i]);
+				} else if (false == parameterTypes[i].isAssignableFrom(args[i].getClass())) {
+					//对于类型不同的字段，尝试转换，转换失败则使用原对象类型
+					final Object targetValue = Convert.convert(parameterTypes[i], args[i]);
+					if (null != targetValue) {
+						actualArgs[i] = targetValue;
+					}
+				} else {
+					actualArgs[i] = args[i];
+				}
+			}
+		}
+
 		try {
-			return (T) method.invoke(ClassUtil.isStatic(method) ? null : obj, args);
+			return (T) method.invoke(ClassUtil.isStatic(method) ? null : obj, actualArgs);
 		} catch (Exception e) {
 			throw new UtilException(e);
 		}

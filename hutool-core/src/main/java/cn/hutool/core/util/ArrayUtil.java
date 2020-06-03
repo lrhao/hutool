@@ -1,14 +1,24 @@
 package cn.hutool.core.util;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.collection.IterUtil;
+import cn.hutool.core.comparator.CompareUtil;
 import cn.hutool.core.exceptions.UtilException;
 import cn.hutool.core.lang.Editor;
 import cn.hutool.core.lang.Filter;
 
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 数组工具类
@@ -645,6 +655,230 @@ public class ArrayUtil {
 	}
 
 	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static int[] addAll(int[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (int[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final int[] result = new int[length];
+		length = 0;
+		for (int[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static long[] addAll(long[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (long[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final long[] result = new long[length];
+		length = 0;
+		for (long[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static double[] addAll(double[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (double[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final double[] result = new double[length];
+		length = 0;
+		for (double[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static float[] addAll(float[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (float[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final float[] result = new float[length];
+		length = 0;
+		for (float[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static char[] addAll(char[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (char[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final char[] result = new char[length];
+		length = 0;
+		for (char[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static boolean[] addAll(boolean[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (boolean[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final boolean[] result = new boolean[length];
+		length = 0;
+		for (boolean[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 将多个数组合并在一起<br>
+	 * 忽略null的数组
+	 *
+	 * @param arrays 数组集合
+	 * @return 合并后的数组
+	 * @since 4.6.9
+	 */
+	public static short[] addAll(short[]... arrays) {
+		if (arrays.length == 1) {
+			return arrays[0];
+		}
+
+		// 计算总长度
+		int length = 0;
+		for (short[] array : arrays) {
+			if (null != array) {
+				length += array.length;
+			}
+		}
+
+		final short[] result = new short[length];
+		length = 0;
+		for (short[] array : arrays) {
+			if (null != array) {
+				System.arraycopy(array, 0, result, length, array.length);
+				length += array.length;
+			}
+		}
+		return result;
+	}
+
+	/**
 	 * 包装 {@link System#arraycopy(Object, int, Object, int, int)}<br>
 	 * 数组复制
 	 * 
@@ -831,6 +1065,27 @@ public class ArrayUtil {
 	}
 
 	/**
+	 * 编辑数组<br>
+	 * 编辑过程通过传入的Editor实现来返回需要的元素内容，这个Editor实现可以实现以下功能：
+	 *
+	 * <pre>
+	 * 1、修改元素对象，返回集合中为修改后的对象
+	 * </pre>
+	 *
+	 * 注意：此方法会修改原数组！
+	 *
+	 * @param <T> 数组元素类型
+	 * @param array 数组
+	 * @param editor 编辑器接口
+	 * @since 5.3.3
+	 */
+	public static <T> void edit(T[] array, Editor<T> editor) {
+		for(int i = 0; i < array.length; i++){
+			array[i] = editor.edit(array[i]);
+		}
+	}
+
+	/**
 	 * 过滤<br>
 	 * 过滤过程通过传入的Filter实现来过滤返回需要的元素内容，这个Filter实现可以实现以下功能：
 	 * 
@@ -931,7 +1186,7 @@ public class ArrayUtil {
 		}
 
 		final int size = Math.min(keys.length, values.length);
-		final Map<K, V> map = CollectionUtil.newHashMap(size, isOrder);
+		final Map<K, V> map = CollUtil.newHashMap(size, isOrder);
 		for (int i = 0; i < size; i++) {
 			map.put(keys[i], values[i]);
 		}
@@ -2394,11 +2649,44 @@ public class ArrayUtil {
 			if (ArrayUtil.isArray(item)) {
 				sb.append(join(ArrayUtil.wrap(item), conjunction, prefix, suffix));
 			} else if (item instanceof Iterable<?>) {
-				sb.append(IterUtil.join((Iterable<?>) item, conjunction, prefix, suffix));
+				sb.append(CollUtil.join((Iterable<?>) item, conjunction, prefix, suffix));
 			} else if (item instanceof Iterator<?>) {
 				sb.append(IterUtil.join((Iterator<?>) item, conjunction, prefix, suffix));
 			} else {
 				sb.append(StrUtil.wrap(StrUtil.toString(item), prefix, suffix));
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * 以 conjunction 为分隔符将数组转换为字符串
+	 *
+	 * @param <T> 被处理的集合
+	 * @param array 数组
+	 * @param conjunction 分隔符
+	 * @param editor 每个元素的编辑器，null表示不编辑
+	 * @return 连接后的字符串
+	 * @since 5.3.3
+	 */
+	public static <T> String join(T[] array, CharSequence conjunction, Editor<T> editor) {
+		if (null == array) {
+			return null;
+		}
+
+		final StringBuilder sb = new StringBuilder();
+		boolean isFirst = true;
+		for (T item : array) {
+			if (isFirst) {
+				isFirst = false;
+			} else {
+				sb.append(conjunction);
+			}
+			if(null != editor){
+				item = editor.edit(item);
+			}
+			if(null != item){
+				sb.append(StrUtil.toString(item));
 			}
 		}
 		return sb.toString();
@@ -2674,7 +2962,7 @@ public class ArrayUtil {
 	 * @since 3.0.9
 	 */
 	public static <T> T[] toArray(Iterator<T> iterator, Class<T> componentType) {
-		return toArray(CollectionUtil.newArrayList(iterator), componentType);
+		return toArray(CollUtil.newArrayList(iterator), componentType);
 	}
 
 	/**
@@ -3331,19 +3619,32 @@ public class ArrayUtil {
 	// ------------------------------------------------------------------------------------------------------------ min and max
 	/**
 	 * 取最小值
-	 * 
+	 *
 	 * @param <T> 元素类型
 	 * @param numberArray 数字数组
 	 * @return 最小值
 	 * @since 3.0.9
 	 */
 	public static <T extends Comparable<? super T>> T min(T[] numberArray) {
+		return min(numberArray, null);
+	}
+
+	/**
+	 * 取最小值
+	 * 
+	 * @param <T> 元素类型
+	 * @param numberArray 数字数组
+	 * @param comparator 比较器，null按照默认比较
+	 * @return 最小值
+	 * @since 5.3.4
+	 */
+	public static <T extends Comparable<? super T>> T min(T[] numberArray, Comparator<T> comparator) {
 		if (isEmpty(numberArray)) {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		T min = numberArray[0];
 		for (T t : numberArray) {
-			if (ObjectUtil.compare(min, t) > 0) {
+			if (CompareUtil.compare(min, t, comparator) > 0) {
 				min = t;
 			}
 		}
@@ -3492,19 +3793,32 @@ public class ArrayUtil {
 
 	/**
 	 * 取最大值
-	 * 
+	 *
 	 * @param <T> 元素类型
 	 * @param numberArray 数字数组
 	 * @return 最大值
 	 * @since 3.0.9
 	 */
 	public static <T extends Comparable<? super T>> T max(T[] numberArray) {
+		return max(numberArray, null);
+	}
+
+	/**
+	 * 取最大值
+	 * 
+	 * @param <T> 元素类型
+	 * @param numberArray 数字数组
+	 * @param comparator 比较器，null表示默认比较器
+	 * @return 最大值
+	 * @since 5.3.4
+	 */
+	public static <T extends Comparable<? super T>> T max(T[] numberArray, Comparator<T> comparator) {
 		if (isEmpty(numberArray)) {
 			throw new IllegalArgumentException("Number array must not empty !");
 		}
 		T max = numberArray[0];
 		for (int i = 1; i < numberArray.length; i++) {
-			if (ObjectUtil.compare(max, numberArray[i]) < 0) {
+			if (CompareUtil.compare(max, numberArray[i], comparator) < 0) {
 				max = numberArray[i];
 			}
 		}

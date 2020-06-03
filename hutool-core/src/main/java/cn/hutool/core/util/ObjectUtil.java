@@ -276,6 +276,48 @@ public class ObjectUtil {
 	}
 
 	/**
+	 * 如果给定对象为{@code null}或者 "" 返回默认值
+	 *
+	 * <pre>
+	 * ObjectUtil.defaultIfEmpty(null, null)      = null
+	 * ObjectUtil.defaultIfEmpty(null, "")        = ""
+	 * ObjectUtil.defaultIfEmpty("", "zz")      = "zz"
+	 * ObjectUtil.defaultIfEmpty(" ", "zz")      = " "
+	 * ObjectUtil.defaultIfEmpty("abc", *)        = "abc"
+	 * </pre>
+	 *
+	 * @param <T>          对象类型（必须实现CharSequence接口）
+	 * @param str          被检查对象，可能为{@code null}
+	 * @param defaultValue 被检查对象为{@code null}或者 ""返回的默认值，可以为{@code null}或者 ""
+	 * @return 被检查对象为{@code null}或者 ""返回默认值，否则返回原值
+	 * @since 5.0.4
+	 */
+	public static <T extends CharSequence> T defaultIfEmpty(final T str, final T defaultValue) {
+		return StrUtil.isEmpty(str) ? defaultValue : str;
+	}
+
+	/**
+	 * 如果给定对象为{@code null}或者""或者空白符返回默认值
+	 *
+	 * <pre>
+	 * ObjectUtil.defaultIfEmpty(null, null)      = null
+	 * ObjectUtil.defaultIfEmpty(null, "")        = ""
+	 * ObjectUtil.defaultIfEmpty("", "zz")      = "zz"
+	 * ObjectUtil.defaultIfEmpty(" ", "zz")      = "zz"
+	 * ObjectUtil.defaultIfEmpty("abc", *)        = "abc"
+	 * </pre>
+	 *
+	 * @param <T>          对象类型（必须实现CharSequence接口）
+	 * @param str          被检查对象，可能为{@code null}
+	 * @param defaultValue 被检查对象为{@code null}或者 ""或者空白符返回的默认值，可以为{@code null}或者 ""或者空白符
+	 * @return 被检查对象为{@code null}或者 ""或者空白符返回默认值，否则返回原值
+	 * @since 5.0.4
+	 */
+	public static <T extends CharSequence> T defaultIfBlank(final T str, final T defaultValue) {
+		return StrUtil.isBlank(str) ? defaultValue : str;
+	}
+
+	/**
 	 * 克隆对象<br>
 	 * 如果对象实现Cloneable接口，调用其clone方法<br>
 	 * 如果实现Serializable接口，执行深度克隆<br>
@@ -355,18 +397,8 @@ public class ObjectUtil {
 		if (false == (obj instanceof Serializable)) {
 			return null;
 		}
-
-		FastByteArrayOutputStream byteOut = new FastByteArrayOutputStream();
-		ObjectOutputStream oos = null;
-		try {
-			oos = new ObjectOutputStream(byteOut);
-			oos.writeObject(obj);
-			oos.flush();
-		} catch (Exception e) {
-			throw new UtilException(e);
-		} finally {
-			IoUtil.close(oos);
-		}
+		final FastByteArrayOutputStream byteOut = new FastByteArrayOutputStream();
+		IoUtil.writeObjects(byteOut, false, (Serializable) obj);
 		return byteOut.toByteArray();
 	}
 
@@ -374,20 +406,16 @@ public class ObjectUtil {
 	 * 反序列化<br>
 	 * 对象必须实现Serializable接口
 	 *
+	 * <p>
+	 * 注意！！！ 此方法不会检查反序列化安全，可能存在反序列化漏洞风险！！！
+	 * </p>
+	 *
 	 * @param <T>   对象类型
 	 * @param bytes 反序列化的字节码
 	 * @return 反序列化后的对象
 	 */
-	@SuppressWarnings("unchecked")
 	public static <T> T deserialize(byte[] bytes) {
-		ObjectInputStream ois;
-		try {
-			ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-			ois = new ObjectInputStream(bais);
-			return (T) ois.readObject();
-		} catch (Exception e) {
-			throw new UtilException(e);
-		}
+		return IoUtil.readObj(new ByteArrayInputStream(bytes));
 	}
 
 	/**
@@ -527,7 +555,7 @@ public class ObjectUtil {
 	}
 
 	/**
-	 * 是否存都为{@code null}或空对象，通过{@link ObjectUtil#isEmpty(Object)} 判断元素
+	 * 是否全都为{@code null}或空对象，通过{@link ObjectUtil#isEmpty(Object)} 判断元素
 	 *
 	 * @param objs 被检查的对象,一个或者多个
 	 * @return 是否都为空
@@ -537,7 +565,7 @@ public class ObjectUtil {
 	}
 
 	/**
-	 * 是否存都不为{@code null}或空对象，通过{@link ObjectUtil#isEmpty(Object)} 判断元素
+	 * 是否全都不为{@code null}或空对象，通过{@link ObjectUtil#isEmpty(Object)} 判断元素
 	 *
 	 * @param objs 被检查的对象,一个或者多个
 	 * @return 是否都不为空
